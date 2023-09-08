@@ -2,14 +2,13 @@ const ContactsRepository = require("../controllers/repositories/ContactsReposito
 
 class ContactController {
   async index(request, response) {
-    // Listar todos os registros
-    const contacts = await ContactsRepository.findAll();
+    const { orderBy } = request.query;
+    const contacts = await ContactsRepository.findAll(orderBy);
 
     response.json(contacts);
   }
 
   async show(request, response) {
-    // Obter apenas um registro
     const { id } = request.params;
 
     const contact = await ContactsRepository.findById(id);
@@ -22,7 +21,6 @@ class ContactController {
   }
 
   async store(request, response) {
-    // Adicionar um registro
     const { name, email, phone, category_id } = request.body;
 
     if (!name) {
@@ -32,7 +30,9 @@ class ContactController {
     const contactExists = await ContactsRepository.findByEmail(email);
 
     if (contactExists) {
-      return response.status(400).json({ error: "This e-mail is already in use." });
+      return response
+        .status(400)
+        .json({ error: "This e-mail is already in use." });
     }
 
     const contact = await ContactsRepository.create({
@@ -46,7 +46,6 @@ class ContactController {
   }
 
   async update(request, response) {
-    // Editar um registro
     const { id } = request.params;
     const { name, email, phone, category_id } = request.body;
 
@@ -63,23 +62,23 @@ class ContactController {
     const contactByEmail = await ContactsRepository.findByEmail(email);
 
     if (contactByEmail && contactByEmail.id !== id) {
-      return response.status(400).json({ error: "This e-mail is already in use." });
+      return response
+        .status(400)
+        .json({ error: "This e-mail is already in use." });
     }
 
-    const contact = await ContactsRepository.update(id, { name, email, phone, category_id })
+    const contact = await ContactsRepository.update(id, {
+      name,
+      email,
+      phone,
+      category_id,
+    });
 
-    response.json(contact)
+    response.json(contact);
   }
 
   async delete(request, response) {
-    // Excluir um registro
     const { id } = request.params;
-
-    const contact = await ContactsRepository.findById(id);
-
-    if (!contact) {
-      return response.status(404).json({ error: "User not found" });
-    }
 
     await ContactsRepository.delete(id);
     response.sendStatus(204);
